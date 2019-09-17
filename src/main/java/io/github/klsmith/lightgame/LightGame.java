@@ -19,6 +19,10 @@ import javax.swing.WindowConstants;
 public class LightGame extends JPanel implements KeyListener, MouseMotionListener {
 
 	private boolean debug = false;
+	private boolean infrared = false;
+
+	private int spread = 45;
+	private int resolution = 45;
 
 	private final int gridCellSize = 32;
 	private final int gridWidth = 20;
@@ -158,7 +162,7 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 
 	protected void render(Graphics2D g) {
 		g.clearRect(0, 0, getWidth(), getHeight());
-		g.setColor(Color.WHITE);
+		g.setColor(Color.BLACK);
 		g.fillRect(0, 0, getWidth(), getHeight());
 		if (debug) {
 			g.setColor(Color.LIGHT_GRAY);
@@ -184,27 +188,55 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 			}
 		}
 		movePlayer(g);
+		drawLight(g, spread, resolution);
 		g.setColor(Color.RED);
 		fillCircle(g, player.x, player.y, player.radius);
-		final double mouseDirection = getDirectionFromPlayerToMouse();
-		g.setColor(Color.GRAY);
-		drawMarchingCircles(g, player.x, player.y, mouseDirection);
 	}
 
-	private void drawMarchingCircles(Graphics2D g, double x, double y, double direction) {
+	private void drawLight(Graphics2D g, double degreeSpread, int resolution) {
+		final double mouseDirection = getDirectionFromPlayerToMouse();
+		final double halfSpread = Math.toRadians(degreeSpread / 2);
+		final double offset = Math.toRadians(degreeSpread / resolution);
+		int[] lightX = new int[resolution + 1];
+		int[] lightY = new int[resolution + 1];
+		lightX[0] = player.x;
+		lightY[0] = player.y;
+		for (int i = 0; i < resolution; i++) {
+			final double direction = mouseDirection - halfSpread + (i * offset);
+			final Double2 point = drawMarchingCircles(g, player.x, player.y, direction);
+			lightX[i + 1] = (int) point.x;
+			lightY[i + 1] = (int) point.y;
+		}
+		if (infrared) {
+			g.setColor(Color.RED);
+			g.drawLine(player.x, player.y, lightX[1], lightY[1]);
+			g.drawLine(player.x, player.y, lightX[resolution], lightY[resolution]);
+		} else {
+			g.setColor(Color.WHITE);
+			g.fillPolygon(lightX, lightY, resolution + 1);
+		}
+	}
+
+	private Double2 drawMarchingCircles(Graphics2D g, double x, double y, double direction) {
 		final double shortestDistance = shortestDistanceFromPointToWall(x, y);
-		outlineCircle(g, (int) x, (int) y, (int) shortestDistance);
 		final double dirX = x + lengthDirX(shortestDistance, direction);
 		final double dirY = y + lengthDirY(shortestDistance, direction);
-		fillCircle(g, (int) dirX, (int) dirY, 3);
-		if (shortestDistance >= 1.0) {
-			drawMarchingCircles(g, dirX, dirY, direction);
-		} else {
-			final int size = 8;
-			g.setColor(Color.RED);
-			g.drawLine((int) x - size, (int) y - size, (int) x + size, (int) y + size);
-			g.drawLine((int) x - size, (int) y + size, (int) x + size, (int) y - size);
+		if (debug) {
+			g.setColor(Color.GRAY);
+			outlineCircle(g, (int) x, (int) y, (int) shortestDistance);
+			fillCircle(g, (int) dirX, (int) dirY, 3);
 		}
+		if (shortestDistance >= 1.0) {
+			return drawMarchingCircles(g, dirX, dirY, direction);
+		}
+		if (infrared) {
+			g.setColor(Color.RED);
+			fillCircle(g, (int) x, (int) y, 2);
+		}
+		final Double2 result = new Double2();
+		result.x = x;
+		result.y = y;
+		return result;
 	}
 
 	private void outlineCircle(Graphics2D g, int x, int y, int radius) {
@@ -359,6 +391,25 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 			break;
 		case KeyEvent.VK_SPACE:
 			debug = !debug;
+			break;
+		case KeyEvent.VK_M:
+			infrared = !infrared;
+			break;
+		case KeyEvent.VK_O:
+			spread--;
+			break;
+		case KeyEvent.VK_P:
+			if (spread < 360) {
+				spread++;
+			}
+			break;
+		case KeyEvent.VK_9:
+			if (resolution > 1) {
+				resolution--;
+			}
+			break;
+		case KeyEvent.VK_0:
+			resolution++;
 			break;
 		}
 	}
