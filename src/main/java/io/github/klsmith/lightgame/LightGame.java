@@ -167,14 +167,14 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 
 	private final List<List<Consumer<Graphics2D>>> layers = new ArrayList<>();
 
-	private synchronized void resetLayers() {
+	private void resetLayers() {
 		layers.clear();
 		layers.add(new ArrayList<>());
 		layers.add(new ArrayList<>());
 		layers.add(new ArrayList<>());
 	}
 
-	private synchronized void renderLayers(Graphics2D g) {
+	private void renderLayers(Graphics2D g) {
 		g.clearRect(0, 0, getWidth(), getHeight());
 		for (List<Consumer<Graphics2D>> list : layers) {
 			for (Consumer<Graphics2D> drawer : list) {
@@ -187,7 +187,7 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 		}
 	}
 
-	protected void render(Graphics2D graphics) {
+	protected synchronized void render(Graphics2D graphics) {
 		resetLayers();
 		layers.get(BACKGROUND).add(g -> {
 			g.setColor(Color.BLACK);
