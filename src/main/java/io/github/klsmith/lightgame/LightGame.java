@@ -167,17 +167,22 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 
 	private final List<List<Consumer<Graphics2D>>> layers = new ArrayList<>();
 
-	private void resetLayers() {
+	private synchronized void resetLayers() {
 		layers.clear();
 		layers.add(new ArrayList<>());
 		layers.add(new ArrayList<>());
 		layers.add(new ArrayList<>());
 	}
 
-	private void renderLayers(Graphics2D g) {
+	private synchronized void renderLayers(Graphics2D g) {
+		g.clearRect(0, 0, getWidth(), getHeight());
 		for (List<Consumer<Graphics2D>> list : layers) {
 			for (Consumer<Graphics2D> drawer : list) {
-				drawer.accept(g);
+				try {
+					drawer.accept(g);
+				} catch (NullPointerException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
@@ -185,7 +190,6 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 	protected void render(Graphics2D graphics) {
 		resetLayers();
 		layers.get(BACKGROUND).add(g -> {
-			g.clearRect(0, 0, getWidth(), getHeight());
 			g.setColor(Color.BLACK);
 			g.fillRect(0, 0, getWidth(), getHeight());
 		});
@@ -205,22 +209,22 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 		if (debug) {
 			layers.get(BACKGROUND).add(g -> {
 				for (Wall wall : walls) {
-					g.setColor(Color.BLACK);
+					g.setColor(Color.GREEN);
 					if (wall.isCircle) {
 						g.fillOval(wall.x, wall.y, wall.width, wall.height);
 					} else {
 						g.fillRect(wall.x, wall.y, wall.width, wall.height);
 					}
-					g.setColor(Color.GREEN);
-					final int centerX = wall.x + (wall.width / 2);
-					final int centerY = wall.y + (wall.height / 2);
-					fillCircle(g, centerX, centerY, 1);
 				}
 			});
 		}
 		layers.get(PLAYER).add(g -> {
 			g.setColor(Color.RED);
 			fillCircle(g, player.x, player.y, player.radius);
+		});
+		layers.get(FOREGROUND).add(g -> {
+			g.setColor(Color.WHITE);
+			g.drawString("Spread: " + spread + "\u00B0  Resolution: " + resolution, 8, 16);
 		});
 		renderLayers(graphics);
 	}
