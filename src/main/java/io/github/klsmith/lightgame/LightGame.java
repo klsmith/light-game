@@ -10,6 +10,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -160,42 +161,71 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 		render((Graphics2D) g);
 	}
 
-	protected void render(Graphics2D g) {
-		g.clearRect(0, 0, getWidth(), getHeight());
-		g.setColor(Color.BLACK);
-		g.fillRect(0, 0, getWidth(), getHeight());
-		if (debug) {
-			g.setColor(Color.LIGHT_GRAY);
-			for (int x = 0; x < getWidth(); x += gridCellSize) {
-				g.drawLine(x, 0, x, getHeight());
-			}
-			for (int y = 0; y < getHeight(); y += gridCellSize) {
-				g.drawLine(0, y, getWidth(), y);
+	private static final int BACKGROUND = 0;
+	private static final int PLAYER = 1;
+	private static final int FOREGROUND = 2;
+
+	private final List<List<Consumer<Graphics2D>>> layers = new ArrayList<>();
+
+	private void resetLayers() {
+		layers.clear();
+		layers.add(new ArrayList<>());
+		layers.add(new ArrayList<>());
+		layers.add(new ArrayList<>());
+	}
+
+	private void renderLayers(Graphics2D g) {
+		for (List<Consumer<Graphics2D>> list : layers) {
+			for (Consumer<Graphics2D> drawer : list) {
+				drawer.accept(g);
 			}
 		}
-		movePlayer(g);
-		drawLight(g, spread, resolution);
+	}
+
+	protected void render(Graphics2D graphics) {
+		resetLayers();
+		layers.get(BACKGROUND).add(g -> {
+			g.clearRect(0, 0, getWidth(), getHeight());
+			g.setColor(Color.BLACK);
+			g.fillRect(0, 0, getWidth(), getHeight());
+		});
 		if (debug) {
-			for (Wall wall : walls) {
-				g.setColor(Color.BLACK);
-				if (wall.isCircle) {
-					g.fillOval(wall.x, wall.y, wall.width, wall.height);
-				} else {
-					g.fillRect(wall.x, wall.y, wall.width, wall.height);
+			layers.get(FOREGROUND).add(g -> {
+				g.setColor(Color.LIGHT_GRAY);
+				for (int x = 0; x < getWidth(); x += gridCellSize) {
+					g.drawLine(x, 0, x, getHeight());
 				}
-				if (debug) {
+				for (int y = 0; y < getHeight(); y += gridCellSize) {
+					g.drawLine(0, y, getWidth(), y);
+				}
+			});
+		}
+		movePlayer(graphics);
+		drawLight(graphics, spread, resolution);
+		if (debug) {
+			layers.get(BACKGROUND).add(g -> {
+				for (Wall wall : walls) {
+					g.setColor(Color.BLACK);
+					if (wall.isCircle) {
+						g.fillOval(wall.x, wall.y, wall.width, wall.height);
+					} else {
+						g.fillRect(wall.x, wall.y, wall.width, wall.height);
+					}
 					g.setColor(Color.GREEN);
 					final int centerX = wall.x + (wall.width / 2);
 					final int centerY = wall.y + (wall.height / 2);
 					fillCircle(g, centerX, centerY, 1);
 				}
-			}
+			});
 		}
-		g.setColor(Color.RED);
-		fillCircle(g, player.x, player.y, player.radius);
+		layers.get(PLAYER).add(g -> {
+			g.setColor(Color.RED);
+			fillCircle(g, player.x, player.y, player.radius);
+		});
+		renderLayers(graphics);
 	}
 
-	private void drawLight(Graphics2D g, double degreeSpread, int resolution) {
+	private void drawLight(Graphics2D graphics, double degreeSpread, int resolution) {
 		final double mouseDirection = getDirectionFromPlayerToMouse();
 		final double halfSpread = Math.toRadians(degreeSpread / 2);
 		final double offset = Math.toRadians(degreeSpread / resolution);
@@ -205,34 +235,42 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 		lightY[0] = player.y;
 		for (int i = 0; i < resolution; i++) {
 			final double direction = mouseDirection - halfSpread + (i * offset);
-			final Double2 point = drawMarchingCircles(g, player.x, player.y, direction);
+			final Double2 point = drawMarchingCircles(graphics, player.x, player.y, direction);
 			lightX[i + 1] = (int) point.x;
 			lightY[i + 1] = (int) point.y;
 		}
 		if (infrared) {
-			g.setColor(Color.RED);
-			g.drawPolygon(lightX, lightY, resolution +1);
+			layers.get(PLAYER).add(g -> {
+				g.setColor(Color.RED);
+				g.drawPolygon(lightX, lightY, resolution + 1);
+			});
 		} else {
-			g.setColor(Color.WHITE);
-			g.fillPolygon(lightX, lightY, resolution + 1);
+			layers.get(PLAYER).add(g -> {
+				g.setColor(Color.WHITE);
+				g.fillPolygon(lightX, lightY, resolution + 1);
+			});
 		}
 	}
 
-	private Double2 drawMarchingCircles(Graphics2D g, double x, double y, double direction) {
+	private Double2 drawMarchingCircles(Graphics2D graphics, double x, double y, double direction) {
 		final double shortestDistance = shortestDistanceFromPointToWall(x, y);
 		final double dirX = x + lengthDirX(shortestDistance, direction);
 		final double dirY = y + lengthDirY(shortestDistance, direction);
 		if (debug) {
-			g.setColor(Color.GRAY);
-			outlineCircle(g, (int) x, (int) y, (int) shortestDistance);
-			fillCircle(g, (int) dirX, (int) dirY, 3);
+			layers.get(FOREGROUND).add(g -> {
+				g.setColor(Color.GRAY);
+				outlineCircle(g, (int) x, (int) y, (int) shortestDistance);
+				fillCircle(g, (int) dirX, (int) dirY, 3);
+			});
 		}
 		if (shortestDistance >= 1.0) {
-			return drawMarchingCircles(g, dirX, dirY, direction);
+			return drawMarchingCircles(graphics, dirX, dirY, direction);
 		}
 		if (debug) {
-			g.setColor(Color.GREEN);
-			fillCircle(g, (int) x, (int) y, 1);
+			layers.get(FOREGROUND).add(g -> {
+				g.setColor(Color.GREEN);
+				fillCircle(g, (int) x, (int) y, 1);
+			});
 		}
 		final Double2 result = new Double2();
 		result.x = x;
