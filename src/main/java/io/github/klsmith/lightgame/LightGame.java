@@ -173,22 +173,24 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 				g.drawLine(0, y, getWidth(), y);
 			}
 		}
-		for (Wall wall : walls) {
-			g.setColor(Color.BLACK);
-			if (wall.isCircle) {
-				g.fillOval(wall.x, wall.y, wall.width, wall.height);
-			} else {
-				g.fillRect(wall.x, wall.y, wall.width, wall.height);
-			}
-			if (debug) {
-				g.setColor(Color.GREEN);
-				final int centerX = wall.x + (wall.width / 2);
-				final int centerY = wall.y + (wall.height / 2);
-				fillCircle(g, centerX, centerY, 1);
-			}
-		}
 		movePlayer(g);
 		drawLight(g, spread, resolution);
+		if (debug) {
+			for (Wall wall : walls) {
+				g.setColor(Color.BLACK);
+				if (wall.isCircle) {
+					g.fillOval(wall.x, wall.y, wall.width, wall.height);
+				} else {
+					g.fillRect(wall.x, wall.y, wall.width, wall.height);
+				}
+				if (debug) {
+					g.setColor(Color.GREEN);
+					final int centerX = wall.x + (wall.width / 2);
+					final int centerY = wall.y + (wall.height / 2);
+					fillCircle(g, centerX, centerY, 1);
+				}
+			}
+		}
 		g.setColor(Color.RED);
 		fillCircle(g, player.x, player.y, player.radius);
 	}
@@ -231,7 +233,7 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 		}
 		if (infrared) {
 			g.setColor(Color.RED);
-			fillCircle(g, (int) x, (int) y, 2);
+			fillCircle(g, (int) x, (int) y, 1);
 		}
 		final Double2 result = new Double2();
 		result.x = x;
