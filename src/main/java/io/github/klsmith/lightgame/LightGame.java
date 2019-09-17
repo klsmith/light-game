@@ -211,8 +211,7 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 		}
 		if (infrared) {
 			g.setColor(Color.RED);
-			g.drawLine(player.x, player.y, lightX[1], lightY[1]);
-			g.drawLine(player.x, player.y, lightX[resolution], lightY[resolution]);
+			g.drawPolygon(lightX, lightY, resolution +1);
 		} else {
 			g.setColor(Color.WHITE);
 			g.fillPolygon(lightX, lightY, resolution + 1);
@@ -231,8 +230,8 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 		if (shortestDistance >= 1.0) {
 			return drawMarchingCircles(g, dirX, dirY, direction);
 		}
-		if (infrared) {
-			g.setColor(Color.RED);
+		if (debug) {
+			g.setColor(Color.GREEN);
 			fillCircle(g, (int) x, (int) y, 1);
 		}
 		final Double2 result = new Double2();
