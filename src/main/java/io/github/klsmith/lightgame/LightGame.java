@@ -230,8 +230,8 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 
 	private Double2 drawMarchingCircles(Graphics2D graphics, double x, double y, double direction) {
 		final double shortestDistance = shortestDistanceFromPointToWall(x, y);
-		final double dirX = x + lengthDirX(shortestDistance, direction);
-		final double dirY = y + lengthDirY(shortestDistance, direction);
+		final double dirX = x + MathUtil.lengthDirX(shortestDistance, direction);
+		final double dirY = y + MathUtil.lengthDirY(shortestDistance, direction);
 		if (debug) {
 			layers.get(FOREGROUND).add(g -> {
 				g.setColor(Color.GRAY);
@@ -269,7 +269,7 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 	}
 
 	private double getDirectionFromPlayerToMouse() {
-		return pointDirection(player.x, player.y, mouse.x, mouse.y);
+		return MathUtil.pointDirection(player.x, player.y, mouse.x, mouse.y);
 	}
 
 	private double shortestDistanceFromPointToWall(double x, double y) {
@@ -286,9 +286,9 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 			wallSize.y = wall.height / 2;
 			final double distanceToOutside;
 			if (wall.isCircle) {
-				distanceToOutside = signedDstToCircle(point, wallCenter, wallSize.x);
+				distanceToOutside = MathUtil.signedDstToCircle(point, wallCenter, wallSize.x);
 			} else {
-				distanceToOutside = signedDstToBox(point, wallCenter, wallSize);
+				distanceToOutside = MathUtil.signedDstToBox(point, wallCenter, wallSize);
 			}
 			result = Math.min(result, distanceToOutside);
 		}
@@ -308,64 +308,6 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 		if (player.right && !player.left) {
 			player.x += player.speed;
 		}
-	}
-
-	private double pointDirection(double x1, double y1, double x2, double y2) {
-		final double x = x2 - x1;
-		final double y = y2 - y1;
-		double angle = Math.toDegrees(Math.atan2(y, x));
-		if (angle < 0) {
-			angle += 360;
-		}
-		return Math.toRadians(angle);
-	}
-
-	private double lengthDirX(double distance, double direction) {
-		return distance * Math.cos(direction);
-	}
-
-	private double lengthDirY(double distance, double direction) {
-		return distance * Math.sin(direction);
-	}
-
-	private double length(Double2 v) {
-		return Math.sqrt((v.x * v.x) + (v.y * v.y));
-	}
-
-	private double signedDstToCircle(Double2 p, Double2 center, double radius) {
-		return length(center.subtract(p)) - radius;
-	}
-
-	private double signedDstToBox(Double2 p, Double2 center, Double2 size) {
-		final Double2 offset = abs(p.subtract(center)).subtract(size);
-		final double unsignedDst = length(max(offset, 0));
-		final double dstInsideBox = max(min(offset, 0));
-		return unsignedDst + dstInsideBox;
-	}
-
-	private Double2 abs(Double2 v) {
-		final Double2 result = new Double2();
-		result.x = Math.abs(v.x);
-		result.y = Math.abs(v.y);
-		return result;
-	}
-
-	private Double2 max(Double2 v, double value) {
-		final Double2 result = new Double2();
-		result.x = Math.max(v.x, value);
-		result.y = Math.max(v.y, value);
-		return result;
-	}
-
-	private Double2 min(Double2 v, double value) {
-		final Double2 result = new Double2();
-		result.x = Math.min(v.x, value);
-		result.y = Math.min(v.y, value);
-		return result;
-	}
-
-	private double max(Double2 v) {
-		return Math.max(v.x, v.y);
 	}
 
 	@Override
