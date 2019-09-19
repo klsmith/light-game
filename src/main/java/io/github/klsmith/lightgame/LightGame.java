@@ -155,7 +155,7 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 				}
 			});
 		}
-		movePlayer();
+		player.update();
 		if (debug) {
 			layers.get(PLAYER).add(g -> {
 				g.setColor(Color.GRAY);
@@ -293,21 +293,6 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 			result = Math.min(result, distanceToOutside);
 		}
 		return result;
-	}
-
-	private void movePlayer() {
-		if (player.up && !player.down) {
-			player.y -= player.speed;
-		}
-		if (player.down && !player.up) {
-			player.y += player.speed;
-		}
-		if (player.left && !player.right) {
-			player.x -= player.speed;
-		}
-		if (player.right && !player.left) {
-			player.x += player.speed;
-		}
 	}
 
 	@Override

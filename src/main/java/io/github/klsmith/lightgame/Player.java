@@ -11,4 +11,19 @@ public class Player {
 	boolean down = false;
 	boolean up = false;
 
+	public void update() {
+		if (up && !down) {
+			y -= speed;
+		}
+		if (down && !up) {
+			y += speed;
+		}
+		if (left && !right) {
+			x -= speed;
+		}
+		if (right && !left) {
+			x += speed;
+		}
+	}
+
 }
