@@ -1,5 +1,6 @@
 package io.github.klsmith.lightgame;
 
+import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,10 +8,12 @@ public class Level {
 
 	private final int startX;
 	private final int startY;
+	private final LightGame game;
 	private final Grid grid;
 	private final List<Wall> walls;
 
-	public Level(Grid grid, int[] level) {
+	public Level(LightGame game, Grid grid, int[] level) {
+		this.game = game;
 		this.grid = grid;
 		walls = new ArrayList<>();
 		int sx = 0;
@@ -58,6 +61,15 @@ public class Level {
 
 	public List<Wall> getWalls() {
 		return walls;
+	}
+
+	public void draw(Graphics2D g) {
+		if (game.state.debug) {
+			for (Wall wall : walls) {
+				wall.draw(g);
+			}
+			grid.draw(g);
+		}
 	}
 
 }

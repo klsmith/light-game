@@ -4,9 +4,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -16,9 +13,6 @@ import javax.swing.WindowConstants;
 public class LightGame extends JPanel {
 
 	private static final String TITLE = "Light Game";
-	private static final int BACKGROUND = 0;
-	private static final int PLAYER = 1;
-	private static final int FOREGROUND = 2;
 
 	final AppState state;
 	final Mouse mouse;
@@ -58,7 +52,7 @@ public class LightGame extends JPanel {
 	}
 
 	public LightGame() {
-		level = new Level(new Grid(32, 20, 15), new int[] {
+		level = new Level(this, new Grid(32, 20, 15), new int[] {
 				2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, //
 				2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, //
 				2, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, //
@@ -91,44 +85,14 @@ public class LightGame extends JPanel {
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
+		g.setColor(Color.BLACK);
+		g.fillRect(0, 0, getWidth(), getHeight());
 		render((Graphics2D) g);
 	}
 
-	private final List<List<Consumer<Graphics2D>>> layers = new ArrayList<>();
-
-	private void resetLayers() {
-		layers.clear();
-		layers.add(new ArrayList<>());
-		layers.add(new ArrayList<>());
-		layers.add(new ArrayList<>());
-	}
-
-	private void renderLayers(Graphics2D g) {
-		g.clearRect(0, 0, getWidth(), getHeight());
-		g.setColor(Color.BLACK);
-		g.fillRect(0, 0, getWidth(), getHeight());
-		for (List<Consumer<Graphics2D>> list : layers) {
-			for (Consumer<Graphics2D> drawer : list) {
-				drawer.accept(g);
-			}
-		}
-	}
-
-	private synchronized void render(Graphics2D graphics) {
-		resetLayers();
-		if (state.debug) {
-			for (Wall wall : level.getWalls()) {
-				layers.get(BACKGROUND).add(wall::draw);
-			}
-		}
-		if (state.debug) {
-			layers.get(PLAYER).add(player.getController()::draw);
-		}
-		layers.get(PLAYER).add(player::draw);
-		if (state.debug) {
-			layers.get(FOREGROUND).add(level.getGrid()::draw);
-		}
-		renderLayers(graphics);
+	private synchronized void render(Graphics2D g) {
+		level.draw(g);
+		player.draw(g);
 	}
 
 }

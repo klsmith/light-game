@@ -15,12 +15,10 @@ public class Light {
 	private int resolution;
 	private boolean infrared;
 
-	private final LightGame game;
-
 	private Polygon shape;
 
-	private List<Point> debugDots;
-
+	private final LightGame game;
+	private final List<Point> debugDots;
 	private final Controller controller;
 
 	public Light(LightGame game, int spread, int resolution) {

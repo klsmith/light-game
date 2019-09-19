@@ -12,10 +12,12 @@ public class Player {
 	int x = 0;
 	int y = 0;
 
+	private final LightGame game;
 	private final Light light;
 	private final Controller controller;
 
 	public Player(LightGame game) {
+		this.game = game;
 		x = game.level.getStartX();
 		y = game.level.getStartY();
 		this.light = new Light(game, 45, 45);
@@ -92,28 +94,27 @@ public class Player {
 			light.getController().keyReleased(e);
 		}
 
-		public void draw(Graphics2D g) {
-			g.setColor(Color.GRAY);
-			if (up) {
-				g.drawRect(x - radius, y - (radius * 3), radius * 2, radius * 2);
-			}
-			if (down) {
-				g.drawRect(x - radius, y + radius, radius * 2, radius * 2);
-			}
-			if (left) {
-				g.drawRect(x - (radius * 3), y - radius, radius * 2, radius * 2);
-			}
-			if (right) {
-				g.drawRect(x + radius, y - radius, radius * 2, radius * 2);
-			}
-		}
-
 	}
 
 	public void draw(Graphics2D g) {
 		light.draw(g);
 		g.setColor(Color.RED);
 		DrawUtil.fillCircle(g, x, y, radius);
+		if (game.state.debug) {
+			g.setColor(Color.GRAY);
+			if (controller.up) {
+				g.drawRect(x - radius, y - (radius * 3), radius * 2, radius * 2);
+			}
+			if (controller.down) {
+				g.drawRect(x - radius, y + radius, radius * 2, radius * 2);
+			}
+			if (controller.left) {
+				g.drawRect(x - (radius * 3), y - radius, radius * 2, radius * 2);
+			}
+			if (controller.right) {
+				g.drawRect(x + radius, y - radius, radius * 2, radius * 2);
+			}
+		}
 	}
 
 }
