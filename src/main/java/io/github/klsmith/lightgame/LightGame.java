@@ -4,8 +4,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -15,23 +13,25 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
-public class LightGame extends JPanel implements KeyListener {
+public class LightGame extends JPanel {
 
-	private boolean running = true;
-	private boolean debug = false;
+	private static final String TITLE = "Light Game";
+	private static final int BACKGROUND = 0;
+	private static final int PLAYER = 1;
+	private static final int FOREGROUND = 2;
 
-	private final Mouse mouse = new Mouse();
-	private final LightSettings light = new LightSettings(45, 45);
-	private final GridSettings grid = new GridSettings(32, 20, 15);
-	private final Player player = new Player();
-	private final List<Wall> walls = new ArrayList<>();
+	private final AppState state;
+	private final Mouse mouse;
+	private final LightSettings light;
+	private final Player player;
+	private final Level level;
 
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(LightGame::startGameWindow);
 	}
 
 	public static void startGameWindow() {
-		final JFrame frame = new JFrame("Light Game");
+		final JFrame frame = new JFrame(TITLE);
 		final LightGame game = new LightGame();
 		frame.add(game);
 		frame.pack();
@@ -43,7 +43,7 @@ public class LightGame extends JPanel implements KeyListener {
 
 			@Override
 			public void run() {
-				while (game.running) {
+				while (game.state.running) {
 					game.paintImmediately(0, 0, game.getWidth(), game.getHeight());
 					try {
 						Thread.sleep(10);
@@ -58,18 +58,11 @@ public class LightGame extends JPanel implements KeyListener {
 	}
 
 	public LightGame() {
-		readLevel();
-		final int panelWidth = grid.columns * grid.cellSize;
-		final int panelHeight = grid.rows * grid.cellSize;
-		setPreferredSize(new Dimension(panelWidth, panelHeight));
-		addKeyListener(this);
-		addKeyListener(player.getController());
-		addKeyListener(light.getController());
-		addMouseMotionListener(mouse.getController());
-	}
-
-	private void readLevel() {
-		final int[] level = {
+		state = new AppState();
+		mouse = new Mouse();
+		light = new LightSettings(45, 45);
+		player = new Player();
+		level = new Level(new GridSettings(32, 20, 15), new int[] {
 				2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, //
 				2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, //
 				2, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, //
@@ -85,24 +78,13 @@ public class LightGame extends JPanel implements KeyListener {
 				2, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, //
 				2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, //
 				2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 //
-		};
-		for (int y = 0; y < grid.rows; y++) {
-			for (int x = 0; x < grid.columns; x++) {
-				final int index = (y * grid.columns) + x;
-				int marker = level[index];
-				if (1 == marker) {
-					player.x = x * grid.cellSize + (grid.cellSize / 2);
-					player.y = y * grid.cellSize + (grid.cellSize / 2);
-				}
-				if (2 == marker || 3 == marker) {
-					final boolean isCircle = 3 == marker ? true : false;
-					final Wall wall = new Wall(grid.cellSize, isCircle);
-					wall.x = x * grid.cellSize;
-					wall.y = y * grid.cellSize;
-					walls.add(wall);
-				}
-			}
-		}
+		});
+		level.resetPlayer(player);
+		setPreferredSize(new Dimension(level.getWidth(), level.getHeight()));
+		addKeyListener(player.getController());
+		addKeyListener(light.getController());
+		addKeyListener(state.getController());
+		addMouseMotionListener(mouse.getController());
 	}
 
 	@Override
@@ -110,10 +92,6 @@ public class LightGame extends JPanel implements KeyListener {
 		super.paintComponent(g);
 		render((Graphics2D) g);
 	}
-
-	private static final int BACKGROUND = 0;
-	private static final int PLAYER = 1;
-	private static final int FOREGROUND = 2;
 
 	private final List<List<Consumer<Graphics2D>>> layers = new ArrayList<>();
 
@@ -126,6 +104,8 @@ public class LightGame extends JPanel implements KeyListener {
 
 	private void renderLayers(Graphics2D g) {
 		g.clearRect(0, 0, getWidth(), getHeight());
+		g.setColor(Color.BLACK);
+		g.fillRect(0, 0, getWidth(), getHeight());
 		for (List<Consumer<Graphics2D>> list : layers) {
 			for (Consumer<Graphics2D> drawer : list) {
 				try {
@@ -140,22 +120,18 @@ public class LightGame extends JPanel implements KeyListener {
 	protected synchronized void render(Graphics2D graphics) {
 		player.update();
 		resetLayers();
-		layers.get(BACKGROUND).add(g -> {
-			g.setColor(Color.BLACK);
-			g.fillRect(0, 0, getWidth(), getHeight());
-		});
-		if (debug) {
-			for (Wall wall : walls) {
+		if (state.debug) {
+			for (Wall wall : level.getWalls()) {
 				layers.get(BACKGROUND).add(wall::draw);
 			}
 		}
-		if (debug) {
+		if (state.debug) {
 			layers.get(PLAYER).add(player.getController()::draw);
 		}
 		drawLight(graphics, light.spread, light.resolution);
 		layers.get(PLAYER).add(player::draw);
-		if (debug) {
-			layers.get(FOREGROUND).add(grid::draw);
+		if (state.debug) {
+			layers.get(FOREGROUND).add(level.getGridSettings()::draw);
 		}
 		layers.get(FOREGROUND).add(light::draw);
 		renderLayers(graphics);
@@ -192,7 +168,7 @@ public class LightGame extends JPanel implements KeyListener {
 		final double shortestDistance = shortestDistanceFromPointToWall(x, y);
 		final double dirX = x + MathUtil.lengthDirX(shortestDistance, direction);
 		final double dirY = y + MathUtil.lengthDirY(shortestDistance, direction);
-		if (debug) {
+		if (state.debug) {
 			layers.get(FOREGROUND).add(g -> {
 				g.setColor(Color.GRAY);
 				DrawUtil.outlineCircle(g, (int) x, (int) y, (int) shortestDistance);
@@ -202,7 +178,7 @@ public class LightGame extends JPanel implements KeyListener {
 		if (shortestDistance >= 1.0) {
 			return drawMarchingCircles(graphics, dirX, dirY, direction);
 		}
-		if (debug) {
+		if (state.debug) {
 			layers.get(FOREGROUND).add(g -> {
 				g.setColor(Color.GREEN);
 				DrawUtil.fillCircle(g, (int) x, (int) y, 1);
@@ -223,7 +199,7 @@ public class LightGame extends JPanel implements KeyListener {
 		point.x = x;
 		point.y = y;
 		double result = Double.MAX_VALUE;
-		for (Wall wall : walls) {
+		for (Wall wall : level.getWalls()) {
 			final Double2 wallCenter = new Double2();
 			wallCenter.x = wall.x + (wall.width / 2);
 			wallCenter.y = wall.y + (wall.height / 2);
@@ -239,23 +215,6 @@ public class LightGame extends JPanel implements KeyListener {
 			result = Math.min(result, distanceToOutside);
 		}
 		return result;
-	}
-
-	@Override
-	public void keyTyped(KeyEvent e) {
-	}
-
-	@Override
-	public void keyPressed(KeyEvent e) {
-		switch (e.getKeyCode()) {
-		case KeyEvent.VK_SPACE:
-			debug = !debug;
-			break;
-		}
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {
 	}
 
 }
