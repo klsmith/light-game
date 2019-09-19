@@ -23,7 +23,6 @@ public class LightGame extends JPanel {
 	private final AppState state;
 	private final Mouse mouse;
 	private final Light light;
-	private final Player player;
 	private final Level level;
 
 	public static void main(String[] args) {
@@ -62,7 +61,6 @@ public class LightGame extends JPanel {
 		state = new AppState();
 		mouse = new Mouse();
 		light = new Light(45, 45);
-		player = new Player();
 		level = new Level(new Grid(32, 20, 15), new int[] {
 				2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, //
 				2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, //
@@ -80,16 +78,15 @@ public class LightGame extends JPanel {
 				2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, //
 				2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 //
 		});
-		level.resetPlayer(player);
 		setPreferredSize(new Dimension(level.getWidth(), level.getHeight()));
-		addKeyListener(player.getController());
+		addKeyListener(level.getPlayer().getController());
 		addKeyListener(light.getController());
 		addKeyListener(state.getController());
 		addMouseMotionListener(mouse.getController());
 	}
 
 	private void update() {
-		player.update();
+		level.getPlayer().update();
 	}
 
 	@Override
@@ -130,11 +127,11 @@ public class LightGame extends JPanel {
 			}
 		}
 		if (state.debug) {
-			layers.get(PLAYER).add(player.getController()::draw);
+			layers.get(PLAYER).add(level.getPlayer().getController()::draw);
 		}
 		final double mouseDirection = getDirectionFromPlayerToMouse();
-		drawLight(player.x, player.y, mouseDirection, light.spread, light.resolution);
-		layers.get(PLAYER).add(player::draw);
+		drawLight(level.getPlayer().x, level.getPlayer().y, mouseDirection, light.spread, light.resolution);
+		layers.get(PLAYER).add(level.getPlayer()::draw);
 		if (state.debug) {
 			layers.get(FOREGROUND).add(level.getGridSettings()::draw);
 		}
@@ -143,14 +140,14 @@ public class LightGame extends JPanel {
 	}
 
 	private void drawLight(int x, int y, double direction, double spreadInDegrees, int resolution) {
-		final double halfSpread = spreadInDegrees / 2;
-		final double offset = spreadInDegrees / resolution;
+		final double halfSpread = Math.toRadians(spreadInDegrees / 2);
+		final double offset = Math.toRadians(spreadInDegrees / resolution);
 		int[] lightX = new int[resolution + 1];
 		int[] lightY = new int[resolution + 1];
 		lightX[0] = x;
 		lightY[0] = y;
 		for (int i = 0; i < resolution; i++) {
-			final double rayDirection = Math.toRadians(direction - halfSpread + (i * offset));
+			final double rayDirection = direction - halfSpread + (i * offset);
 			final Double2 point = drawMarchingCircles(x, y, rayDirection);
 			lightX[i + 1] = (int) point.x;
 			lightY[i + 1] = (int) point.y;
@@ -195,7 +192,7 @@ public class LightGame extends JPanel {
 	}
 
 	private double getDirectionFromPlayerToMouse() {
-		return MathUtil.pointDirection(player.x, player.y, mouse.x, mouse.y);
+		return MathUtil.pointDirection(level.getPlayer().x, level.getPlayer().y, mouse.x, mouse.y);
 	}
 
 	private double shortestDistanceFromPointToWall(double x, double y) {

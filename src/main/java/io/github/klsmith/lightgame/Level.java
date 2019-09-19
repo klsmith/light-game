@@ -5,25 +5,21 @@ import java.util.List;
 
 public class Level {
 
-	private final int playerStartX;
-	private final int playerStartY;
-
-	private final List<Wall> walls;
-
 	private final Grid grid;
+	private final Player player;
+	private final List<Wall> walls;
 
 	public Level(Grid grid, int[] level) {
 		this.grid = grid;
+		this.player = new Player();
 		walls = new ArrayList<>();
-		int px = 0;
-		int py = 0;
 		for (int y = 0; y < grid.rows; y++) {
 			for (int x = 0; x < grid.columns; x++) {
 				final int index = (y * grid.columns) + x;
 				int marker = level[index];
 				if (1 == marker) {
-					px = x * grid.cellSize + (grid.cellSize / 2);
-					py = y * grid.cellSize + (grid.cellSize / 2);
+					player.x = x * grid.cellSize + (grid.cellSize / 2);
+					player.y = y * grid.cellSize + (grid.cellSize / 2);
 				}
 				if (2 == marker || 3 == marker) {
 					final boolean isCircle = 3 == marker ? true : false;
@@ -34,8 +30,6 @@ public class Level {
 				}
 			}
 		}
-		playerStartX = px;
-		playerStartY = py;
 	}
 
 	public Grid getGridSettings() {
@@ -50,9 +44,8 @@ public class Level {
 		return grid.rows * grid.cellSize;
 	}
 
-	public void resetPlayer(Player player) {
-		player.x = playerStartX;
-		player.y = playerStartY;
+	public Player getPlayer() {
+		return player;
 	}
 
 	public List<Wall> getWalls() {
