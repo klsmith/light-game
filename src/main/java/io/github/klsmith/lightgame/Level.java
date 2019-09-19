@@ -10,9 +10,9 @@ public class Level {
 
 	private final List<Wall> walls;
 
-	private final GridSettings grid;
+	private final Grid grid;
 
-	public Level(GridSettings grid, int[] level) {
+	public Level(Grid grid, int[] level) {
 		this.grid = grid;
 		walls = new ArrayList<>();
 		int px = 0;
@@ -38,7 +38,7 @@ public class Level {
 		playerStartY = py;
 	}
 
-	public GridSettings getGridSettings() {
+	public Grid getGridSettings() {
 		return grid;
 	}
 

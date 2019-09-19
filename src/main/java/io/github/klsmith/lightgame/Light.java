@@ -5,7 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-public class LightSettings {
+public class Light {
 
 	int spread;
 	int resolution;
@@ -13,7 +13,7 @@ public class LightSettings {
 
 	private final Controller controller;
 
-	public LightSettings(int spread, int resolution) {
+	public Light(int spread, int resolution) {
 		this.spread = spread;
 		this.resolution = resolution;
 		this.infrared = false;

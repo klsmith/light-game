@@ -22,7 +22,7 @@ public class LightGame extends JPanel {
 
 	private final AppState state;
 	private final Mouse mouse;
-	private final LightSettings light;
+	private final Light light;
 	private final Player player;
 	private final Level level;
 
@@ -60,9 +60,9 @@ public class LightGame extends JPanel {
 	public LightGame() {
 		state = new AppState();
 		mouse = new Mouse();
-		light = new LightSettings(45, 45);
+		light = new Light(45, 45);
 		player = new Player();
-		level = new Level(new GridSettings(32, 20, 15), new int[] {
+		level = new Level(new Grid(32, 20, 15), new int[] {
 				2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, //
 				2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, //
 				2, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, //

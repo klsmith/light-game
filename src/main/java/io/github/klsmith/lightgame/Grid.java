@@ -3,13 +3,13 @@ package io.github.klsmith.lightgame;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
-public class GridSettings {
+public class Grid {
 
 	final int cellSize;
 	final int columns;
 	final int rows;
 
-	public GridSettings(int cellSize, int columns, int rows) {
+	public Grid(int cellSize, int columns, int rows) {
 		this.cellSize = cellSize;
 		this.columns = columns;
 		this.rows = rows;
