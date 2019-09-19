@@ -32,7 +32,7 @@ public class Level {
 		}
 	}
 
-	public Grid getGridSettings() {
+	public Grid getGrid() {
 		return grid;
 	}
 

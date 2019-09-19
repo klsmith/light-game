@@ -129,7 +129,7 @@ public class LightGame extends JPanel {
 		layers.get(PLAYER).add(light::draw);
 		layers.get(PLAYER).add(level.getPlayer()::draw);
 		if (state.debug) {
-			layers.get(FOREGROUND).add(level.getGridSettings()::draw);
+			layers.get(FOREGROUND).add(level.getGrid()::draw);
 		}
 		renderLayers(graphics);
 	}
