@@ -66,6 +66,7 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 		final int panelHeight = grid.rows * grid.cellSize;
 		setPreferredSize(new Dimension(panelWidth, panelHeight));
 		addKeyListener(this);
+		addKeyListener(player.getController());
 		addMouseMotionListener(this);
 	}
 
@@ -302,18 +303,6 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 	@Override
 	public void keyPressed(KeyEvent e) {
 		switch (e.getKeyCode()) {
-		case KeyEvent.VK_W:
-			player.up = true;
-			break;
-		case KeyEvent.VK_S:
-			player.down = true;
-			break;
-		case KeyEvent.VK_A:
-			player.left = true;
-			break;
-		case KeyEvent.VK_D:
-			player.right = true;
-			break;
 		case KeyEvent.VK_SPACE:
 			debug = !debug;
 			break;
@@ -341,20 +330,6 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-		switch (e.getKeyCode()) {
-		case KeyEvent.VK_W:
-			player.up = false;
-			break;
-		case KeyEvent.VK_S:
-			player.down = false;
-			break;
-		case KeyEvent.VK_A:
-			player.left = false;
-			break;
-		case KeyEvent.VK_D:
-			player.right = false;
-			break;
-		}
 	}
 
 	@Override
