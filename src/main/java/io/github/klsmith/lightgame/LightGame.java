@@ -20,10 +20,10 @@ public class LightGame extends JPanel {
 	private static final int PLAYER = 1;
 	private static final int FOREGROUND = 2;
 
-	private final AppState state;
-	private final Mouse mouse;
-	private final Light light;
-	private final Level level;
+	final AppState state;
+	final Mouse mouse;
+	final Light light;
+	final Level level;
 
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(LightGame::startGameWindow);
@@ -58,9 +58,6 @@ public class LightGame extends JPanel {
 	}
 
 	public LightGame() {
-		state = new AppState();
-		mouse = new Mouse();
-		light = new Light(45, 45);
 		level = new Level(new Grid(32, 20, 15), new int[] {
 				2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, //
 				2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, //
@@ -78,6 +75,9 @@ public class LightGame extends JPanel {
 				2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, //
 				2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 //
 		});
+		state = new AppState();
+		mouse = new Mouse();
+		light = new Light(this, 45, 45);
 		setPreferredSize(new Dimension(level.getWidth(), level.getHeight()));
 		addKeyListener(level.getPlayer().getController());
 		addKeyListener(light.getController());
@@ -87,6 +87,7 @@ public class LightGame extends JPanel {
 
 	private void update() {
 		level.getPlayer().update();
+		light.update();
 	}
 
 	@Override
@@ -110,16 +111,12 @@ public class LightGame extends JPanel {
 		g.fillRect(0, 0, getWidth(), getHeight());
 		for (List<Consumer<Graphics2D>> list : layers) {
 			for (Consumer<Graphics2D> drawer : list) {
-				try {
-					drawer.accept(g);
-				} catch (NullPointerException e) {
-					e.printStackTrace();
-				}
+				drawer.accept(g);
 			}
 		}
 	}
 
-	protected synchronized void render(Graphics2D graphics) {
+	private synchronized void render(Graphics2D graphics) {
 		resetLayers();
 		if (state.debug) {
 			for (Wall wall : level.getWalls()) {
@@ -129,93 +126,12 @@ public class LightGame extends JPanel {
 		if (state.debug) {
 			layers.get(PLAYER).add(level.getPlayer().getController()::draw);
 		}
-		final double mouseDirection = getDirectionFromPlayerToMouse();
-		drawLight(level.getPlayer().x, level.getPlayer().y, mouseDirection, light.spread, light.resolution);
+		layers.get(PLAYER).add(light::draw);
 		layers.get(PLAYER).add(level.getPlayer()::draw);
 		if (state.debug) {
 			layers.get(FOREGROUND).add(level.getGridSettings()::draw);
 		}
-		layers.get(FOREGROUND).add(light::draw);
 		renderLayers(graphics);
-	}
-
-	private void drawLight(int x, int y, double direction, double spreadInDegrees, int resolution) {
-		final double halfSpread = Math.toRadians(spreadInDegrees / 2);
-		final double offset = Math.toRadians(spreadInDegrees / resolution);
-		int[] lightX = new int[resolution + 1];
-		int[] lightY = new int[resolution + 1];
-		lightX[0] = x;
-		lightY[0] = y;
-		for (int i = 0; i < resolution; i++) {
-			final double rayDirection = direction - halfSpread + (i * offset);
-			final Double2 point = drawMarchingCircles(x, y, rayDirection);
-			lightX[i + 1] = (int) point.x;
-			lightY[i + 1] = (int) point.y;
-		}
-		if (light.infrared) {
-			layers.get(PLAYER).add(g -> {
-				g.setColor(Color.RED);
-				g.drawPolygon(lightX, lightY, resolution + 1);
-			});
-		} else {
-			layers.get(PLAYER).add(g -> {
-				g.setColor(Color.WHITE);
-				g.fillPolygon(lightX, lightY, resolution + 1);
-			});
-		}
-	}
-
-	private Double2 drawMarchingCircles(double x, double y, double radians) {
-		final double shortestDistance = shortestDistanceFromPointToWall(x, y);
-		final double dirX = x + MathUtil.lengthDirX(shortestDistance, radians);
-		final double dirY = y + MathUtil.lengthDirY(shortestDistance, radians);
-		if (state.debug) {
-			layers.get(FOREGROUND).add(g -> {
-				g.setColor(Color.GRAY);
-				DrawUtil.outlineCircle(g, (int) x, (int) y, (int) shortestDistance);
-				DrawUtil.fillCircle(g, (int) dirX, (int) dirY, 3);
-			});
-		}
-		if (shortestDistance >= 1.0) {
-			return drawMarchingCircles(dirX, dirY, radians);
-		}
-		if (state.debug) {
-			layers.get(FOREGROUND).add(g -> {
-				g.setColor(Color.GREEN);
-				DrawUtil.fillCircle(g, (int) x, (int) y, 1);
-			});
-		}
-		final Double2 result = new Double2();
-		result.x = x;
-		result.y = y;
-		return result;
-	}
-
-	private double getDirectionFromPlayerToMouse() {
-		return MathUtil.pointDirection(level.getPlayer().x, level.getPlayer().y, mouse.x, mouse.y);
-	}
-
-	private double shortestDistanceFromPointToWall(double x, double y) {
-		final Double2 point = new Double2();
-		point.x = x;
-		point.y = y;
-		double result = Double.MAX_VALUE;
-		for (Wall wall : level.getWalls()) {
-			final Double2 wallCenter = new Double2();
-			wallCenter.x = wall.x + (wall.width / 2);
-			wallCenter.y = wall.y + (wall.height / 2);
-			final Double2 wallSize = new Double2();
-			wallSize.x = wall.width / 2;
-			wallSize.y = wall.height / 2;
-			final double distanceToOutside;
-			if (wall.isCircle) {
-				distanceToOutside = MathUtil.signedDstToCircle(point, wallCenter, wallSize.x);
-			} else {
-				distanceToOutside = MathUtil.signedDstToBox(point, wallCenter, wallSize);
-			}
-			result = Math.min(result, distanceToOutside);
-		}
-		return result;
 	}
 
 }
