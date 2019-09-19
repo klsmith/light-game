@@ -22,8 +22,8 @@ public class LightGame extends JPanel {
 
 	final AppState state;
 	final Mouse mouse;
-	final Light light;
 	final Level level;
+	final Player player;
 
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(LightGame::startGameWindow);
@@ -75,19 +75,17 @@ public class LightGame extends JPanel {
 				2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, //
 				2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 //
 		});
+		player = new Player(this);
 		state = new AppState();
 		mouse = new Mouse();
-		light = new Light(this, 45, 45);
 		setPreferredSize(new Dimension(level.getWidth(), level.getHeight()));
-		addKeyListener(level.getPlayer().getController());
-		addKeyListener(light.getController());
+		addKeyListener(player.getController());
 		addKeyListener(state.getController());
 		addMouseMotionListener(mouse.getController());
 	}
 
 	private void update() {
-		level.getPlayer().update();
-		light.update();
+		player.update();
 	}
 
 	@Override
@@ -124,10 +122,9 @@ public class LightGame extends JPanel {
 			}
 		}
 		if (state.debug) {
-			layers.get(PLAYER).add(level.getPlayer().getController()::draw);
+			layers.get(PLAYER).add(player.getController()::draw);
 		}
-		layers.get(PLAYER).add(light::draw);
-		layers.get(PLAYER).add(level.getPlayer()::draw);
+		layers.get(PLAYER).add(player::draw);
 		if (state.debug) {
 			layers.get(FOREGROUND).add(level.getGrid()::draw);
 		}

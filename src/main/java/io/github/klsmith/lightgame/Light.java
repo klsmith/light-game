@@ -15,9 +15,7 @@ public class Light {
 	private int resolution;
 	private boolean infrared;
 
-	private final AppState state;
-	private final Level level;
-	private final Mouse mouse;
+	private final LightGame game;
 
 	private Polygon shape;
 
@@ -26,9 +24,7 @@ public class Light {
 	private final Controller controller;
 
 	public Light(LightGame game, int spread, int resolution) {
-		this.state = game.state;
-		this.level = game.level;
-		this.mouse = game.mouse;
+		this.game = game;
 		this.spread = spread;
 		this.resolution = resolution;
 		this.infrared = false;
@@ -52,11 +48,11 @@ public class Light {
 		final double offset = Math.toRadians(spread) / resolution;
 		int[] lightX = new int[resolution + 1];
 		int[] lightY = new int[resolution + 1];
-		lightX[0] = level.getPlayer().x;
-		lightY[0] = level.getPlayer().y;
+		lightX[0] = game.player.x;
+		lightY[0] = game.player.y;
 		for (int i = 0; i < resolution; i++) {
 			final double rayDirection = direction - halfSpread + (i * offset);
-			final Double2 point = drawMarchingCircles(level.getPlayer().x, level.getPlayer().y, rayDirection);
+			final Double2 point = drawMarchingCircles(game.player.x, game.player.y, rayDirection);
 			lightX[i + 1] = (int) point.x;
 			lightY[i + 1] = (int) point.y;
 		}
@@ -67,7 +63,7 @@ public class Light {
 		final double shortestDistance = shortestDistanceFromPointToWall(x, y);
 		final double dirX = x + MathUtil.lengthDirX(shortestDistance, radians);
 		final double dirY = y + MathUtil.lengthDirY(shortestDistance, radians);
-		if (state.debug) {
+		if (game.state.debug) {
 			debugDots.add(new Point((int) x, (int) y));
 		}
 		if (shortestDistance >= 1.0) {
@@ -80,7 +76,7 @@ public class Light {
 	}
 
 	private double getDirectionFromPlayerToMouse() {
-		return MathUtil.pointDirection(level.getPlayer().x, level.getPlayer().y, mouse.x, mouse.y);
+		return MathUtil.pointDirection(game.player.x, game.player.y, game.mouse.x, game.mouse.y);
 	}
 
 	private double shortestDistanceFromPointToWall(double x, double y) {
@@ -88,7 +84,7 @@ public class Light {
 		point.x = x;
 		point.y = y;
 		double result = Double.MAX_VALUE;
-		for (Wall wall : level.getWalls()) {
+		for (Wall wall : game.level.getWalls()) {
 			final Double2 wallCenter = new Double2();
 			wallCenter.x = wall.x + (wall.width / 2);
 			wallCenter.y = wall.y + (wall.height / 2);
@@ -123,10 +119,13 @@ public class Light {
 			}
 		}
 		for (Point point : debugDots) {
-			g.setColor(Color.BLACK);
-			DrawUtil.fillCircle(g, point.x, point.y, 2);
-			g.setColor(Color.WHITE);
-			DrawUtil.fillCircle(g, point.x, point.y, 1);
+			if (infrared) {
+				g.setColor(Color.WHITE);
+				DrawUtil.fillCircle(g, point.x, point.y, 1);
+			} else {
+				g.setColor(Color.BLACK);
+				DrawUtil.fillCircle(g, point.x, point.y, 1);
+			}
 		}
 	}
 

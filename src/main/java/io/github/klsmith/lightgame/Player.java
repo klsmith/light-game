@@ -12,10 +12,14 @@ public class Player {
 	int x = 0;
 	int y = 0;
 
+	private final Light light;
 	private final Controller controller;
 
-	public Player() {
-		controller = new Controller();
+	public Player(LightGame game) {
+		x = game.level.getStartX();
+		y = game.level.getStartY();
+		this.light = new Light(game, 45, 45);
+		this.controller = new Controller();
 	}
 
 	public void update() {
@@ -31,6 +35,7 @@ public class Player {
 		if (controller.right && !controller.left) {
 			x += speed;
 		}
+		light.update();
 	}
 
 	public Controller getController() {
@@ -46,6 +51,7 @@ public class Player {
 
 		@Override
 		public void keyTyped(KeyEvent e) {
+			light.getController().keyTyped(e);
 		}
 
 		@Override
@@ -64,6 +70,7 @@ public class Player {
 				right = true;
 				break;
 			}
+			light.getController().keyPressed(e);
 		}
 
 		@Override
@@ -82,6 +89,7 @@ public class Player {
 				right = false;
 				break;
 			}
+			light.getController().keyReleased(e);
 		}
 
 		public void draw(Graphics2D g) {
@@ -103,6 +111,7 @@ public class Player {
 	}
 
 	public void draw(Graphics2D g) {
+		light.draw(g);
 		g.setColor(Color.RED);
 		DrawUtil.fillCircle(g, x, y, radius);
 	}
