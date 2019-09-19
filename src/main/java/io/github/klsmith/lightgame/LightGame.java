@@ -21,7 +21,6 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 
 	private boolean running = true;
 	private boolean debug = false;
-	private boolean infrared = false;
 
 	private final Mouse mouse = new Mouse();
 	private final LightSettings light = new LightSettings(45, 45);
@@ -67,6 +66,7 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 		setPreferredSize(new Dimension(panelWidth, panelHeight));
 		addKeyListener(this);
 		addKeyListener(player.getController());
+		addKeyListener(light.getController());
 		addMouseMotionListener(this);
 	}
 
@@ -216,7 +216,7 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 			lightX[i + 1] = (int) point.x;
 			lightY[i + 1] = (int) point.y;
 		}
-		if (infrared) {
+		if (light.infrared) {
 			layers.get(PLAYER).add(g -> {
 				g.setColor(Color.RED);
 				g.drawPolygon(lightX, lightY, resolution + 1);
@@ -305,25 +305,6 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 		switch (e.getKeyCode()) {
 		case KeyEvent.VK_SPACE:
 			debug = !debug;
-			break;
-		case KeyEvent.VK_M:
-			infrared = !infrared;
-			break;
-		case KeyEvent.VK_O:
-			light.spread--;
-			break;
-		case KeyEvent.VK_P:
-			if (light.spread < 360) {
-				light.spread++;
-			}
-			break;
-		case KeyEvent.VK_9:
-			if (light.resolution > 1) {
-				light.resolution--;
-			}
-			break;
-		case KeyEvent.VK_0:
-			light.resolution++;
 			break;
 		}
 	}
