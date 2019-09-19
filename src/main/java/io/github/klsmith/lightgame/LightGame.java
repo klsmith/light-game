@@ -6,8 +6,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -17,7 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
-public class LightGame extends JPanel implements KeyListener, MouseMotionListener {
+public class LightGame extends JPanel implements KeyListener {
 
 	private boolean running = true;
 	private boolean debug = false;
@@ -67,7 +65,7 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 		addKeyListener(this);
 		addKeyListener(player.getController());
 		addKeyListener(light.getController());
-		addMouseMotionListener(this);
+		addMouseMotionListener(mouse.getController());
 	}
 
 	private void readLevel() {
@@ -140,65 +138,26 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 	}
 
 	protected synchronized void render(Graphics2D graphics) {
+		player.update();
 		resetLayers();
 		layers.get(BACKGROUND).add(g -> {
 			g.setColor(Color.BLACK);
 			g.fillRect(0, 0, getWidth(), getHeight());
 		});
 		if (debug) {
-			layers.get(FOREGROUND).add(g -> {
-				g.setColor(Color.LIGHT_GRAY);
-				for (int x = 0; x < getWidth(); x += grid.cellSize) {
-					g.drawLine(x, 0, x, getHeight());
-				}
-				for (int y = 0; y < getHeight(); y += grid.cellSize) {
-					g.drawLine(0, y, getWidth(), y);
-				}
-			});
+			for (Wall wall : walls) {
+				layers.get(BACKGROUND).add(wall::draw);
+			}
 		}
-		player.update();
 		if (debug) {
-			layers.get(PLAYER).add(g -> {
-				g.setColor(Color.GRAY);
-				if (player.up) {
-					g.drawRect(player.x - player.radius, player.y - (player.radius * 3), player.radius * 2,
-							player.radius * 2);
-				}
-				if (player.down) {
-					g.drawRect(player.x - player.radius, player.y + player.radius, player.radius * 2,
-							player.radius * 2);
-				}
-				if (player.left) {
-					g.drawRect(player.x - (player.radius * 3), player.y - player.radius, player.radius * 2,
-							player.radius * 2);
-				}
-				if (player.right) {
-					g.drawRect(player.x + player.radius, player.y - player.radius, player.radius * 2,
-							player.radius * 2);
-				}
-			});
+			layers.get(PLAYER).add(player.getController()::draw);
 		}
 		drawLight(graphics, light.spread, light.resolution);
+		layers.get(PLAYER).add(player::draw);
 		if (debug) {
-			layers.get(BACKGROUND).add(g -> {
-				for (Wall wall : walls) {
-					g.setColor(Color.GREEN);
-					if (wall.isCircle) {
-						g.fillOval(wall.x, wall.y, wall.width, wall.height);
-					} else {
-						g.fillRect(wall.x, wall.y, wall.width, wall.height);
-					}
-				}
-			});
+			layers.get(FOREGROUND).add(grid::draw);
 		}
-		layers.get(PLAYER).add(g -> {
-			g.setColor(Color.RED);
-			fillCircle(g, player.x, player.y, player.radius);
-		});
-		layers.get(FOREGROUND).add(g -> {
-			g.setColor(Color.WHITE);
-			g.drawString("Spread: " + light.spread + "\u00B0  Resolution: " + light.resolution, 8, 16);
-		});
+		layers.get(FOREGROUND).add(light::draw);
 		renderLayers(graphics);
 	}
 
@@ -236,8 +195,8 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 		if (debug) {
 			layers.get(FOREGROUND).add(g -> {
 				g.setColor(Color.GRAY);
-				outlineCircle(g, (int) x, (int) y, (int) shortestDistance);
-				fillCircle(g, (int) dirX, (int) dirY, 3);
+				DrawUtil.outlineCircle(g, (int) x, (int) y, (int) shortestDistance);
+				DrawUtil.fillCircle(g, (int) dirX, (int) dirY, 3);
 			});
 		}
 		if (shortestDistance >= 1.0) {
@@ -246,27 +205,13 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 		if (debug) {
 			layers.get(FOREGROUND).add(g -> {
 				g.setColor(Color.GREEN);
-				fillCircle(g, (int) x, (int) y, 1);
+				DrawUtil.fillCircle(g, (int) x, (int) y, 1);
 			});
 		}
 		final Double2 result = new Double2();
 		result.x = x;
 		result.y = y;
 		return result;
-	}
-
-	private void outlineCircle(Graphics2D g, int x, int y, int radius) {
-		final int leftX = x - radius;
-		final int topY = y - radius;
-		final int diameter = radius * 2;
-		g.drawOval(leftX, topY, diameter, diameter);
-	}
-
-	private void fillCircle(Graphics2D g, int x, int y, int radius) {
-		final int leftX = x - radius;
-		final int topY = y - radius;
-		final int diameter = radius * 2;
-		g.fillOval(leftX, topY, diameter, diameter);
 	}
 
 	private double getDirectionFromPlayerToMouse() {
@@ -311,18 +256,6 @@ public class LightGame extends JPanel implements KeyListener, MouseMotionListene
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-	}
-
-	@Override
-	public void mouseDragged(MouseEvent e) {
-		mouse.x = e.getX();
-		mouse.y = e.getY();
-	}
-
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		mouse.x = e.getX();
-		mouse.y = e.getY();
 	}
 
 }

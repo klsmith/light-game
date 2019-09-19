@@ -1,5 +1,7 @@
 package io.github.klsmith.lightgame;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
@@ -9,10 +11,6 @@ public class Player {
 	final int speed = 2;
 	int x = 0;
 	int y = 0;
-	boolean left = false;
-	boolean right = false;
-	boolean down = false;
-	boolean up = false;
 
 	private final Controller controller;
 
@@ -21,16 +19,16 @@ public class Player {
 	}
 
 	public void update() {
-		if (up && !down) {
+		if (controller.up && !controller.down) {
 			y -= speed;
 		}
-		if (down && !up) {
+		if (controller.down && !controller.up) {
 			y += speed;
 		}
-		if (left && !right) {
+		if (controller.left && !controller.right) {
 			x -= speed;
 		}
-		if (right && !left) {
+		if (controller.right && !controller.left) {
 			x += speed;
 		}
 	}
@@ -40,6 +38,11 @@ public class Player {
 	}
 
 	public class Controller implements KeyListener {
+
+		private boolean left = false;
+		private boolean right = false;
+		private boolean down = false;
+		private boolean up = false;
 
 		@Override
 		public void keyTyped(KeyEvent e) {
@@ -81,6 +84,27 @@ public class Player {
 			}
 		}
 
+		public void draw(Graphics2D g) {
+			g.setColor(Color.GRAY);
+			if (up) {
+				g.drawRect(x - radius, y - (radius * 3), radius * 2, radius * 2);
+			}
+			if (down) {
+				g.drawRect(x - radius, y + radius, radius * 2, radius * 2);
+			}
+			if (left) {
+				g.drawRect(x - (radius * 3), y - radius, radius * 2, radius * 2);
+			}
+			if (right) {
+				g.drawRect(x + radius, y - radius, radius * 2, radius * 2);
+			}
+		}
+
+	}
+
+	public void draw(Graphics2D g) {
+		g.setColor(Color.RED);
+		DrawUtil.fillCircle(g, x, y, radius);
 	}
 
 }

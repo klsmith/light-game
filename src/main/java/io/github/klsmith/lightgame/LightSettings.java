@@ -1,5 +1,7 @@
 package io.github.klsmith.lightgame;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
@@ -16,6 +18,11 @@ public class LightSettings {
 		this.resolution = resolution;
 		this.infrared = false;
 		this.controller = new Controller();
+	}
+
+	public void draw(Graphics2D g) {
+		g.setColor(Color.WHITE);
+		g.drawString("Spread: " + spread + "\u00B0  Resolution: " + resolution, 8, 16);
 	}
 
 	public Controller getController() {
