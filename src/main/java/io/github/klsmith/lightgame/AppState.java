@@ -10,15 +10,12 @@ public class AppState {
 
 	private final Controller controller;
 
-	public AppState() {
+	public AppState(LightGame game) {
 		this.controller = new Controller();
+		game.addKeyListener(controller);
 	}
 
-	public Controller getController() {
-		return controller;
-	}
-
-	public class Controller implements KeyListener {
+	private class Controller implements KeyListener {
 
 		@Override
 		public void keyTyped(KeyEvent e) {

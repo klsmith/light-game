@@ -5,20 +5,37 @@ import java.awt.event.MouseMotionListener;
 
 public class Mouse {
 
-	int x = 0;
-	int y = 0;
+	private int x = 0;
+	private int y = 0;
 
+	private final LightGame game;
 	private final Controller controller;
 
-	public Mouse() {
+	public Mouse(LightGame game) {
+		this.game = game;
 		this.controller = new Controller();
+		game.addMouseMotionListener(controller);
 	}
 
-	public Controller getController() {
-		return controller;
+	public int getWindowX() {
+		return x;
 	}
 
-	public class Controller implements MouseMotionListener {
+	public int getWindowY() {
+		return y;
+	}
+
+	public int getGameX() {
+		final double xScalingFactor = (double) game.view.getWidth() / (double) game.getWidth();
+		return (int) (getWindowX() * xScalingFactor) + game.view.getX();
+	}
+
+	public int getGameY() {
+		final double yScalingFactor = (double) game.view.getHeight() / (double) game.getHeight();
+		return (int) (getWindowY() * yScalingFactor) + game.view.getY();
+	}
+
+	private class Controller implements MouseMotionListener {
 
 		@Override
 		public void mouseDragged(MouseEvent e) {

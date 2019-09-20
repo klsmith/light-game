@@ -22,6 +22,7 @@ public class Player {
 		y = game.level.getStartY();
 		this.light = new Light(game, 45, 45);
 		this.controller = new Controller();
+		game.addKeyListener(controller);
 	}
 
 	public void update() {
@@ -40,11 +41,7 @@ public class Player {
 		light.update();
 	}
 
-	public Controller getController() {
-		return controller;
-	}
-
-	public class Controller implements KeyListener {
+	private class Controller implements KeyListener {
 
 		private boolean left = false;
 		private boolean right = false;
@@ -53,7 +50,6 @@ public class Player {
 
 		@Override
 		public void keyTyped(KeyEvent e) {
-			light.getController().keyTyped(e);
 		}
 
 		@Override
@@ -72,7 +68,6 @@ public class Player {
 				right = true;
 				break;
 			}
-			light.getController().keyPressed(e);
 		}
 
 		@Override
@@ -91,7 +86,6 @@ public class Player {
 				right = false;
 				break;
 			}
-			light.getController().keyReleased(e);
 		}
 
 	}

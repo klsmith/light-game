@@ -18,6 +18,7 @@ public class LightGame extends JPanel {
 	final Mouse mouse;
 	final Level level;
 	final Player player;
+	final View view;
 
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(LightGame::startGameWindow);
@@ -70,16 +71,15 @@ public class LightGame extends JPanel {
 				2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 //
 		});
 		player = new Player(this);
-		state = new AppState();
-		mouse = new Mouse();
+		state = new AppState(this);
+		mouse = new Mouse(this);
+		view = new View(this);
 		setPreferredSize(new Dimension(level.getWidth(), level.getHeight()));
-		addKeyListener(player.getController());
-		addKeyListener(state.getController());
-		addMouseMotionListener(mouse.getController());
 	}
 
 	private void update() {
 		player.update();
+		view.update();
 	}
 
 	@Override
@@ -91,8 +91,11 @@ public class LightGame extends JPanel {
 	}
 
 	private synchronized void render(Graphics2D g) {
+		g.scale(getWidth() / view.getWidth(), getHeight() / view.getHeight());
+		g.translate(-view.getX(), -view.getY());
 		level.draw(g);
 		player.draw(g);
+		view.draw(g);
 	}
 
 }

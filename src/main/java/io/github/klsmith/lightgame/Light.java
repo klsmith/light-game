@@ -27,6 +27,7 @@ public class Light {
 		this.resolution = resolution;
 		this.infrared = false;
 		this.controller = new Controller();
+		game.addKeyListener(controller);
 		this.shape = null;
 		this.debugDots = new ArrayList<>();
 	}
@@ -74,7 +75,8 @@ public class Light {
 	}
 
 	private double getDirectionFromPlayerToMouse() {
-		return MathUtil.pointDirection(game.player.x, game.player.y, game.mouse.x, game.mouse.y);
+		return MathUtil.pointDirection(game.player.x, game.player.y,
+				game.mouse.getGameX(), game.mouse.getGameY());
 	}
 
 	private double shortestDistanceFromPointToWall(double x, double y) {
@@ -127,11 +129,7 @@ public class Light {
 		}
 	}
 
-	public Controller getController() {
-		return controller;
-	}
-
-	public class Controller implements KeyListener {
+	private class Controller implements KeyListener {
 
 		@Override
 		public void keyTyped(KeyEvent e) {
