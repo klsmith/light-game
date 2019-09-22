@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Polygon;
+import java.awt.RadialGradientPaint;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
@@ -14,12 +15,14 @@ public class Light {
 	private int spread;
 	private int resolution;
 	private boolean infrared;
+	private final int range = 256;
 
 	private Polygon shape;
 
 	private final LightGame game;
 	private final List<Point> debugDots;
 	private final Controller controller;
+	private double direction = 0;
 
 	public Light(LightGame game, int spread, int resolution) {
 		this.game = game;
@@ -32,17 +35,25 @@ public class Light {
 		this.debugDots = new ArrayList<>();
 	}
 
-	public synchronized void incrementResolution() {
+	public int getSpread() {
+		return spread;
+	}
+
+	public int getResolution() {
+		return resolution;
+	}
+
+	private synchronized void incrementResolution() {
 		resolution++;
 	}
 
-	public synchronized void decrementResolution() {
+	private synchronized void decrementResolution() {
 		resolution--;
 	}
 
 	public synchronized void update() {
 		debugDots.clear();
-		final double direction = getDirectionFromPlayerToMouse();
+		direction = getDirectionFromPlayerToMouse();
 		final double halfSpread = Math.toRadians(spread / 2);
 		final double offset = Math.toRadians(spread) / resolution;
 		int[] lightX = new int[resolution + 1];
@@ -51,22 +62,22 @@ public class Light {
 		lightY[0] = game.player.y;
 		for (int i = 0; i < resolution; i++) {
 			final double rayDirection = direction - halfSpread + (i * offset);
-			final Double2 point = drawMarchingCircles(game.player.x, game.player.y, rayDirection);
+			final Double2 point = drawMarchingCircles(game.player.x, game.player.y, rayDirection, 0);
 			lightX[i + 1] = (int) point.x;
 			lightY[i + 1] = (int) point.y;
 		}
 		shape = new Polygon(lightX, lightY, resolution + 1);
 	}
 
-	private Double2 drawMarchingCircles(double x, double y, double radians) {
-		final double shortestDistance = shortestDistanceFromPointToWall(x, y);
+	private Double2 drawMarchingCircles(double x, double y, double radians, double totalDistance) {
+		final double shortestDistance = Math.min(range - totalDistance, shortestDistanceFromPointToWall(x, y));
 		final double dirX = x + MathUtil.lengthDirX(shortestDistance, radians);
 		final double dirY = y + MathUtil.lengthDirY(shortestDistance, radians);
 		if (game.state.debug) {
 			debugDots.add(new Point((int) x, (int) y));
 		}
 		if (shortestDistance >= 1.0) {
-			return drawMarchingCircles(dirX, dirY, radians);
+			return drawMarchingCircles(dirX, dirY, radians, totalDistance + shortestDistance);
 		}
 		final Double2 result = new Double2();
 		result.x = x;
@@ -104,17 +115,15 @@ public class Light {
 
 	public synchronized void draw(Graphics2D g) {
 		if (null != shape) {
-			g.setColor(Color.WHITE);
-		} else {
-			g.setColor(Color.RED);
-		}
-		g.drawString("Spread: " + spread + "\u00B0  Resolution: " + resolution, 8, 16);
-		if (null != shape) {
 			if (infrared) {
 				g.setColor(Color.RED);
 				g.draw(shape);
 			} else {
-				g.setColor(Color.WHITE);
+				final RadialGradientPaint radialGradient = new RadialGradientPaint(
+						game.player.x, game.player.y, range,
+						new float[] { 0, 1 },
+						new Color[] { Color.WHITE, new Color(255, 255, 255, 0) });
+				g.setPaint(radialGradient);
 				g.fill(shape);
 			}
 		}

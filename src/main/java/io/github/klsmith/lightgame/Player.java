@@ -41,6 +41,10 @@ public class Player {
 		light.update();
 	}
 
+	public Light getLight() {
+		return light;
+	}
+
 	private class Controller implements KeyListener {
 
 		private boolean left = false;

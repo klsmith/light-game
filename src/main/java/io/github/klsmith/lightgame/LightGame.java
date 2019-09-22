@@ -19,6 +19,7 @@ public class LightGame extends JPanel {
 	final Level level;
 	final Player player;
 	final View view;
+	final Hud hud;
 
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(LightGame::startGameWindow);
@@ -74,10 +75,11 @@ public class LightGame extends JPanel {
 		state = new AppState(this);
 		mouse = new Mouse(this);
 		view = new View(this);
+		hud = new Hud(this);
 		setPreferredSize(new Dimension(level.getWidth(), level.getHeight()));
 	}
 
-	private void update() {
+	private synchronized void update() {
 		player.update();
 		view.update();
 	}
@@ -96,6 +98,8 @@ public class LightGame extends JPanel {
 		level.draw(g);
 		player.draw(g);
 		view.draw(g);
+		g.translate(view.getX(), view.getY());
+		hud.draw(g);
 	}
 
 }
