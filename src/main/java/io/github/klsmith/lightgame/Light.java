@@ -66,8 +66,8 @@ public class Light {
         for (int i = 0; i < resolution; i++) {
             final double rayDirection = direction - halfSpread + (i * offset);
             final Double2 point = drawMarchingCircles(game.player.x, game.player.y, rayDirection, 0);
-            lightX[i + 1] = (int) point.getX();
-            lightY[i + 1] = (int) point.getY();
+            lightX[i + 1] = (int) point.getA();
+            lightY[i + 1] = (int) point.getB();
         }
         shape = new Polygon(lightX, lightY, resolution + 1);
     }
@@ -102,7 +102,7 @@ public class Light {
             final Double2 wallSize = new Double2(wallSizeX, wallSizeY);
             final double distanceToOutside;
             if (wall.isCircle) {
-                distanceToOutside = MathUtil.signedDstToCircle(point, wallCenter, wallSize.getX());
+                distanceToOutside = MathUtil.signedDstToCircle(point, wallCenter, wallSize.getA());
             } else {
                 distanceToOutside = MathUtil.signedDstToBox(point, wallCenter, wallSize);
             }
