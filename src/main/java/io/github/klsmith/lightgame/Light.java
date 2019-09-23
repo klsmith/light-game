@@ -86,7 +86,7 @@ public class Light {
 
     public synchronized void draw(Graphics2D g) {
         if (null != shape) {
-            if (controller.isInfrared()) {
+            if (controller.infrared()) {
                 g.setColor(Color.RED);
                 g.draw(shape);
             } else {
@@ -99,7 +99,7 @@ public class Light {
             }
         }
         for (Point point : debugDots) {
-            if (controller.isInfrared()) {
+            if (controller.infrared()) {
                 g.setColor(Color.WHITE);
                 DrawUtil.fillCircle(g, point.x, point.y, 1);
             } else {

@@ -37,7 +37,7 @@ public class LightController implements KeyListener {
                 game.mouse.getGameX(), game.mouse.getGameY());
     }
 
-    public boolean isInfrared() {
+    public boolean infrared() {
         return infrared;
     }
 
