@@ -5,10 +5,10 @@ import java.awt.Graphics2D;
 
 public class Player {
 
-    final int radius = 8;
-    final int speed = 2;
-    int x = 0;
-    int y = 0;
+    private final int radius = 8;
+    private final int speed = 2;
+    private int x = 0;
+    private int y = 0;
 
     private final LightGame game;
     private final Light light;
@@ -16,10 +16,18 @@ public class Player {
 
     public Player(LightGame game) {
         this.game = game;
-        x = game.level.getStartX();
-        y = game.level.getStartY();
+        x = game.getLevel().getStartX();
+        y = game.getLevel().getStartY();
         this.light = new Light(game);
         this.controller = new PlayerController(game);
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
     }
 
     public void update() {
@@ -46,7 +54,7 @@ public class Player {
         light.draw(g);
         g.setColor(Color.RED);
         DrawUtil.fillCircle(g, x, y, radius);
-        if (game.state.debug) {
+        if (game.getStateController().debug()) {
             g.setColor(Color.GRAY);
             if (controller.up()) {
                 g.drawRect(x - radius, y - (radius * 3), radius * 2, radius * 2);

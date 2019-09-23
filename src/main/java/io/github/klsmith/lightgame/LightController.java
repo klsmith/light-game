@@ -33,8 +33,8 @@ public class LightController implements KeyListener {
     }
 
     public double getDirection() {
-        return MathUtil.pointDirection(game.player.x, game.player.y,
-                game.mouse.getGameX(), game.mouse.getGameY());
+        return MathUtil.pointDirection(game.getPlayer().getX(), game.getPlayer().getY(),
+                game.getMouse().getGameX(), game.getMouse().getGameY());
     }
 
     public boolean infrared() {
