@@ -5,8 +5,6 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.RadialGradientPaint;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,54 +13,29 @@ import io.github.klsmith.util.MathUtil;
 
 public class Light {
 
-    private int spread;
-    private int resolution;
-    private boolean infrared;
-    private int range = 256;
-
     private Polygon shape;
 
     private final LightGame game;
     private final List<Point> debugDots;
-    private final Controller controller;
-    private double direction = 0;
+    private final LightController controller;
 
-    public Light(LightGame game, int spread, int resolution) {
+    public Light(LightGame game) {
         this.game = game;
-        this.spread = spread;
-        this.resolution = resolution;
-        this.infrared = false;
-        this.controller = new Controller();
-        game.addKeyListener(controller);
+        this.controller = new LightController(game);
         this.shape = null;
         this.debugDots = new ArrayList<>();
     }
 
-    public int getSpread() {
-        return spread;
-    }
-
-    public int getResolution() {
-        return resolution;
-    }
-
-    public int getRange() {
-        return range;
-    }
-
-    private synchronized void incrementResolution() {
-        resolution++;
-    }
-
-    private synchronized void decrementResolution() {
-        resolution--;
+    public LightController getController() {
+        return controller;
     }
 
     public synchronized void update() {
         debugDots.clear();
-        direction = getDirectionFromPlayerToMouse();
-        final double halfSpread = Math.toRadians(spread / 2);
-        final double offset = Math.toRadians(spread) / resolution;
+        final double direction = controller.getDirection();
+        final double halfSpread = Math.toRadians(controller.getSpread() / 2);
+        final int resolution = controller.getResolution();
+        final double offset = Math.toRadians(controller.getSpread()) / resolution;
         int[] lightX = new int[resolution + 1];
         int[] lightY = new int[resolution + 1];
         lightX[0] = game.player.x;
@@ -77,7 +50,8 @@ public class Light {
     }
 
     private Double2 drawMarchingCircles(double x, double y, double radians, double totalDistance) {
-        final double shortestDistance = Math.min(range - totalDistance, shortestDistanceFromPointToWall(x, y));
+        final double shortestDistance = Math.min(controller.getRange() - totalDistance,
+                shortestDistanceFromPointToWall(x, y));
         final double dirX = x + MathUtil.lengthDirX(shortestDistance, radians);
         final double dirY = y + MathUtil.lengthDirY(shortestDistance, radians);
         if (game.state.debug) {
@@ -87,11 +61,6 @@ public class Light {
             return drawMarchingCircles(dirX, dirY, radians, totalDistance + shortestDistance);
         }
         return new Double2(x, y);
-    }
-
-    private double getDirectionFromPlayerToMouse() {
-        return MathUtil.pointDirection(game.player.x, game.player.y,
-                game.mouse.getGameX(), game.mouse.getGameY());
     }
 
     private double shortestDistanceFromPointToWall(double x, double y) {
@@ -117,12 +86,12 @@ public class Light {
 
     public synchronized void draw(Graphics2D g) {
         if (null != shape) {
-            if (infrared) {
+            if (controller.isInfrared()) {
                 g.setColor(Color.RED);
                 g.draw(shape);
             } else {
                 final RadialGradientPaint radialGradient = new RadialGradientPaint(
-                        game.player.x, game.player.y, range,
+                        game.player.x, game.player.y, controller.getRange(),
                         new float[] { 0, 1 },
                         new Color[] { Color.WHITE, new Color(255, 255, 255, 0) });
                 g.setPaint(radialGradient);
@@ -130,7 +99,7 @@ public class Light {
             }
         }
         for (Point point : debugDots) {
-            if (infrared) {
+            if (controller.isInfrared()) {
                 g.setColor(Color.WHITE);
                 DrawUtil.fillCircle(g, point.x, point.y, 1);
             } else {
@@ -138,47 +107,6 @@ public class Light {
                 DrawUtil.fillCircle(g, point.x, point.y, 1);
             }
         }
-    }
-
-    private class Controller implements KeyListener {
-
-        @Override
-        public void keyTyped(KeyEvent e) {}
-
-        @Override
-        public void keyPressed(KeyEvent e) {
-            switch (e.getKeyCode()) {
-                case KeyEvent.VK_M:
-                    infrared = !infrared;
-                    break;
-                case KeyEvent.VK_O:
-                    spread--;
-                    break;
-                case KeyEvent.VK_P:
-                    if (spread < 360) {
-                        spread++;
-                    }
-                    break;
-                case KeyEvent.VK_9:
-                    if (resolution > 1) {
-                        decrementResolution();
-                    }
-                    break;
-                case KeyEvent.VK_0:
-                    incrementResolution();
-                    break;
-                case KeyEvent.VK_SEMICOLON:
-                    range--;
-                    break;
-                case KeyEvent.VK_QUOTE:
-                    range++;
-                    break;
-            }
-        }
-
-        @Override
-        public void keyReleased(KeyEvent e) {}
-
     }
 
 }

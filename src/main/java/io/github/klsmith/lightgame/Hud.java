@@ -12,11 +12,11 @@ public class Hud {
     }
 
     public void draw(Graphics2D g) {
-        final Light light = game.player.getLight();
+        final LightController lightController = game.player.getLight().getController();
         g.setColor(Color.RED);
-        g.drawString("Spread: " + light.getSpread()
-                + "\u00B0  Resolution: " + light.getResolution()
-                + "  Range: " + light.getRange(), 8, 16);
+        g.drawString("Spread: " + lightController.getSpread()
+                + "\u00B0  Resolution: " + lightController.getResolution()
+                + "  Range: " + lightController.getRange(), 8, 16);
     }
 
 }
