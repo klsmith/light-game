@@ -3,6 +3,8 @@ package io.github.klsmith.lightgame;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
+import io.github.klsmith.lightgame.player.LightController;
+
 public class Hud {
 
     private final LightGame game;

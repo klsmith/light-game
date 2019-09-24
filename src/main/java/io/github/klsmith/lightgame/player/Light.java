@@ -1,4 +1,4 @@
-package io.github.klsmith.lightgame;
+package io.github.klsmith.lightgame.player;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -8,6 +8,9 @@ import java.awt.RadialGradientPaint;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.github.klsmith.lightgame.DrawUtil;
+import io.github.klsmith.lightgame.LightGame;
+import io.github.klsmith.lightgame.Wall;
 import io.github.klsmith.util.Double2;
 import io.github.klsmith.util.MathUtil;
 

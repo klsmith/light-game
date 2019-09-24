@@ -1,7 +1,10 @@
-package io.github.klsmith.lightgame;
+package io.github.klsmith.lightgame.player;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+
+import io.github.klsmith.lightgame.DrawUtil;
+import io.github.klsmith.lightgame.LightGame;
 
 public class Player {
 

@@ -1,7 +1,9 @@
-package io.github.klsmith.lightgame;
+package io.github.klsmith.lightgame.player;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+
+import io.github.klsmith.lightgame.LightGame;
 
 public class PlayerController implements KeyListener {
 

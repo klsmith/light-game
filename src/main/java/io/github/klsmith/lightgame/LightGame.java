@@ -10,6 +10,8 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import io.github.klsmith.lightgame.player.Player;
+
 public class LightGame extends JPanel {
 
     private static final String TITLE = "Light Game";
